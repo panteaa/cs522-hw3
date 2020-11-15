@@ -1,6 +1,9 @@
 # CS522 - HW3
 A simple mobile text entry interface that uses the device’s directional motion to allow users to undo and redo.
 
+## Demo
+To try the interface without running the code, open this link on your mobile phone: [netlify](https://netlifylink.com/).
+
 ## Instructions on how to run the code  
 * Install Node.js and npm
 * Uncompress the zip file
@@ -24,5 +27,5 @@ A simple mobile text entry interface that uses the device’s directional motion
 * The device you are testing should have an accelerometer.
 * Currently this interface only supports Android devices.
 
-## Demo
-To try the interface without running the code, open this link on your mobile phone: [netlify](https://netlifylink.com/).
+## Used Libraries
+* [react-use](https://github.com/streamich/react-use)

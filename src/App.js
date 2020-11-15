@@ -1,129 +1,136 @@
 import './App.css';
-import {useMotion, useInterval} from 'react-use';
-
-import React, { useEffect, useState } from 'react';
-import { useUndoableReducer, UNDO, REDO } from './useUndoableReducer';
-
-
-const UPDATE = 'update'
-const CLEAR = 'clear'
-const RESET = 'reset'
-const ABOUT = 'about'
-
-const CACHE_KEY = 'write-only-app-storage'
-
-function reducer(state, action) {
-  switch (action.type) {
-    case UPDATE:
-      return { text: action.text }
-    case CLEAR:
-      return { text: '' }
-    case RESET:
-      return { text: 'INITIAL_TEXT' }
-    case ABOUT:
-      return { text: 'ABOUT_TEXT' }
-    default:
-      throw new Error(`Unknown action ${action.type}`)
-  }
-}
-
-function getInitialState() {
-  let storedState
-  try {
-    storedState = JSON.parse(window.localStorage.getItem(CACHE_KEY))
-  } catch (error) {
-    console.error('Error restoring from localStorage, using default state')
-  }
-  if (storedState && storedState.text) return storedState
-  return {
-    text: "INITIAL_TEXT"
-  }
-}
+import { useMotion, useInterval } from 'react-use';
+import React, { useEffect, useState, useReducer} from 'react';
 
 function App() {
-  const [acc, setAcc] = useState(); 
 
+  const [acc, setAcc] = useState();
   const stateMotion = useMotion();
 
   useInterval(
     () => {
       setAcc(stateMotion);
       if (Math.abs(JSON.stringify(stateMotion.acceleration.x)) > 1 && canRedo) {
-        dispatch({ type: REDO });
-      } 
+        dispatch({ type: 'redo' });
+      }
       if (Math.abs(JSON.stringify(stateMotion.acceleration.z)) > 1 && canUndo) {
-        dispatch({ type: UNDO });
-      } 
-    },500);
+        dispatch({ type: 'undo' });
+      }
+    }, 500);
 
-
-
-  const { state, dispatch, canUndo, canRedo } = useUndoableReducer(
+  const { state, dispatch, canUndo, canRedo } = useUndoRedo(
     reducer,
-    getInitialState()
+    getInitState()
   );
 
   useEffect(
-    () => 
-    window.localStorage.setItem(CACHE_KEY, JSON.stringify(state)), 
-    [state] // only save in locatstorage if state changes
+    () =>
+      window.localStorage.setItem('cs522-hw3', JSON.stringify(state)),
+    [state]
   );
 
-
-  const { text } = state
+  const { textAreaContent } = state
 
   return (
     <div className="App">
-      <pre>
-        {acc && JSON.stringify(acc.acceleration.x)}
-        {acc && JSON.stringify(acc.acceleration.z)}
-      {/* {JSON.stringify(stateMotion.acceleration.x, null, 2)} */}
-    </pre>
-
-    <nav className="Controls">
-        <button
-          data-testid="clear-button"
-          type="button"
-          onClick={e => dispatch({ type: CLEAR })}
-        >
-          Clear
-        </button>
-        <button
-          data-testid="reset-button"
-          onClick={e => dispatch({ type: RESET })}
-        >
-          Reset
-        </button>
-        <button
-          data-testid="undo-button"
-          disabled={!canUndo}
-          onClick={e => dispatch({ type: UNDO })}
-        >
+      <nav className="Top-bar">
+        <button disabled={!canUndo} onClick={e => dispatch({ type: 'undo' })}>
           Undo
         </button>
-        <button
-          data-testid="redo-button"
-          disabled={!canRedo}
-          onClick={e => dispatch({ type: REDO })}
-        >
+        <button disabled={!canRedo} onClick={e => dispatch({ type: 'redo' })}>
           Redo
         </button>
-        <button
-          data-testid="about-button"
-          onClick={e => dispatch({ type: ABOUT })}
-        >
-          About
+        <button onClick={e => dispatch({ type: 'clear' })}>
+          Clear
         </button>
       </nav>
       <textarea
         autoFocus
-        value={text}
+        value={textAreaContent}
         data-testid="textarea"
-        onChange={e => dispatch({ type: UPDATE, text: e.target.value })}
+        onChange={e => dispatch({ type: 'update', textAreaContent: e.target.value })}
       />
-
+      <pre style={{ color: "yellow" }}>
+        {acc && JSON.stringify(acc.acceleration.x)}
+        {acc && JSON.stringify(acc.acceleration.z)}
+      </pre>
     </div>
   );
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'update':
+      return { textAreaContent: action.textAreaContent }
+    case 'clear':
+      return { textAreaContent: '' }
+    case 'reset':
+      return { textAreaContent: 'init text' }
+    default:
+      throw new Error(`${action.type}`)
+  }
+}
+
+function getInitState() {
+  let storedState
+  try {
+    storedState = JSON.parse(window.localStorage.getItem('cs522-hw3'))
+  } catch (error) {
+    console.error('Error restoring from localStorage, using default state')
+  }
+  if (storedState && storedState.textAreaContent) return storedState
+  return {
+    textAreaContent: "init text"
+  }
+}
+
+function useUndoRedo(reducer, initPresent) {
+  const initState = {
+    history: [initPresent],
+    currentIndex: 0
+  }
+
+  const [state, dispatch] = useReducer(undoable(reducer), initState)
+
+  const { history, currentIndex } = state
+  const canUndo = currentIndex > 0
+  const canRedo = currentIndex < history.length - 1
+
+  return { state: history[currentIndex], dispatch, history, canUndo, canRedo }
+}
+
+function undoable(reducer) {
+  return function (state, action) {
+    const { history, currentIndex } = state
+
+    switch (action.type) {
+      case 'undo':
+        return {
+          ...state,
+          currentIndex: currentIndex - 1
+        }
+      case 'redo':
+        return {
+          ...state,
+          currentIndex: currentIndex + 1
+        }
+      default:
+        const present = history[currentIndex]
+        const newPresent = reducer(present, action)
+
+        if (present === newPresent) {
+          return state
+        }
+
+        const newIndex = currentIndex + 1
+        const newHistory = history.slice(0, newIndex)
+
+        return {
+          history: [...newHistory, newPresent],
+          currentIndex: newIndex
+        }
+    }
+  }
 }
 
 export default App;
