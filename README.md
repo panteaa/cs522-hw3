@@ -30,4 +30,4 @@ To try the interface without running the code, open this link on your mobile pho
 ## Libraries and resources
 * [react-use](https://github.com/streamich/react-use)
 * [react](https://github.com/facebook/react)
-* [vnglst] https://github.com/vnglst/write-only
+* [vnglst](https://github.com/vnglst/write-only)
