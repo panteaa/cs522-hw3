@@ -2,7 +2,7 @@
 A simple mobile text entry interface that uses the device’s directional motion to allow users to undo and redo.
 
 ## Demo
-To try the interface without running the code, open this link on your mobile phone: [netlify](https://netlifylink.com/).
+To try the interface without running the code, open this link on your mobile phone: https://pantea-cs522-hw3.netlify.app/
 
 ## Instructions on how to run the code  
 * Install Node.js and npm
