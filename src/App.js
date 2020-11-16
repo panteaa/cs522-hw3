@@ -12,13 +12,13 @@ function App() {
   useInterval(
     () => {
       setAcc(motionData);
-      if (Math.abs(JSON.stringify(motionData.acceleration.x)) > 3 && redoable) {
+      if (Math.abs(JSON.stringify(motionData.acceleration.y)) > 1 && redoable) {
         dispatch({ type: 'redo' });
       }
-      if (Math.abs(JSON.stringify(motionData.acceleration.z)) > 3 && undoable) {
+      if (Math.abs(JSON.stringify(motionData.acceleration.z)) > 1.5 && undoable) {
         dispatch({ type: 'undo' });
       }
-    }, 500);
+    }, 300);
 
   useEffect(
     () =>
@@ -41,6 +41,9 @@ function App() {
       />
       {/* <pre style={{ color: "yellow" }}>
         {acc && JSON.stringify(acc.acceleration.x)}
+      </pre>
+      <pre style={{ color: "yellow" }}>
+        {acc && JSON.stringify(acc.acceleration.y)}
       </pre>
       <pre style={{ color: "yellow" }}>
         {acc && JSON.stringify(acc.acceleration.z)}

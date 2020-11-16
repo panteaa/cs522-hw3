@@ -19,7 +19,7 @@ To try the interface without running the code, open this link on your mobile pho
 ## Instructions on how to use the interface  
 * Type something in the text area 
 * Move the device quickly in z direction: Undo
-* Move the device quickly in x direction: Redo
+* Move the device quickly in y direction: Redo
 * You can use the undo/redo buttons to do the same actions
 * If there is nothing to Undo/Redo the buttons will be disabled, and motions don't do anything
 
