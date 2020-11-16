@@ -11,9 +11,9 @@ To try the interface without running the code, open this link on your mobile pho
     * Go in to the uncompressed directory: `cd` pathToDirectory
     * `npm install`
     * `npm start`
-* After starting, a webpage will be opened [http://localhost:3000](http://localhost:3000)
-* To run it on your mobile phone to use the motions to ineterct
-    * Open System Prefrences on Mac, select Network, find your IP address in your local network and open that with port 3000 on your mobile browser (ex: http://10.0.0.33:3000)
+* After starting, a web page will be opened [http://localhost:3000](http://localhost:3000)
+* To run it on your mobile phone to use the motions to interact
+    * Open System Preferences on Mac, select Network, find your IP address in your local network and open that with port 3000 on your mobile browser (ex: http://10.0.0.33:3000)
     * You can find this IP also by running `ifconfig` in terminal 
 
 ## Instructions on how to use the interface  
