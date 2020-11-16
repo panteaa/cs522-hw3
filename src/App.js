@@ -1,27 +1,24 @@
 import './App.css';
-import { useMotion, useInterval } from 'react-use';
 import React, { useEffect, useState, useReducer} from 'react';
+import { useMotion, useInterval } from 'react-use';
 
 function App() {
 
   const [acc, setAcc] = useState();
-  const stateMotion = useMotion();
+  const motionData = useMotion();
+  const { state, dispatch, undoable, redoable } = useUndoRedo(reducer, getInitState());
+  const { textAreaContent } = state;
 
   useInterval(
     () => {
-      setAcc(stateMotion);
-      if (Math.abs(JSON.stringify(stateMotion.acceleration.x)) > 1 && canRedo) {
+      setAcc(motionData);
+      if (Math.abs(JSON.stringify(motionData.acceleration.x)) > 3 && redoable) {
         dispatch({ type: 'redo' });
       }
-      if (Math.abs(JSON.stringify(stateMotion.acceleration.z)) > 1 && canUndo) {
+      if (Math.abs(JSON.stringify(motionData.acceleration.z)) > 3 && undoable) {
         dispatch({ type: 'undo' });
       }
     }, 500);
-
-  const { state, dispatch, canUndo, canRedo } = useUndoRedo(
-    reducer,
-    getInitState()
-  );
 
   useEffect(
     () =>
@@ -29,20 +26,12 @@ function App() {
     [state]
   );
 
-  const { textAreaContent } = state
-
   return (
     <div className="App">
       <nav className="Top-bar">
-        <button disabled={!canUndo} onClick={e => dispatch({ type: 'undo' })}>
-          Undo
-        </button>
-        <button disabled={!canRedo} onClick={e => dispatch({ type: 'redo' })}>
-          Redo
-        </button>
-        <button onClick={e => dispatch({ type: 'clear' })}>
-          Clear
-        </button>
+        <button onClick={e => dispatch({ type: 'undo' })} disabled={!undoable}> UNDO </button>
+        <button onClick={e => dispatch({ type: 'redo' })} disabled={!redoable}> REDO </button>
+        <button onClick={e => dispatch({ type: 'clear' })}> CLEAR </button>
       </nav>
       <textarea
         autoFocus
@@ -50,37 +39,39 @@ function App() {
         data-testid="textarea"
         onChange={e => dispatch({ type: 'update', textAreaContent: e.target.value })}
       />
-      <pre style={{ color: "yellow" }}>
+      {/* <pre style={{ color: "yellow" }}>
         {acc && JSON.stringify(acc.acceleration.x)}
-        {acc && JSON.stringify(acc.acceleration.z)}
       </pre>
+      <pre style={{ color: "yellow" }}>
+        {acc && JSON.stringify(acc.acceleration.z)}
+      </pre> */}
     </div>
   );
 }
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'update':
-      return { textAreaContent: action.textAreaContent }
     case 'clear':
       return { textAreaContent: '' }
-    case 'reset':
-      return { textAreaContent: 'init text' }
+    case 'update':
+      return { textAreaContent: action.textAreaContent }
     default:
-      throw new Error(`${action.type}`)
+      throw new Error(`error`)
   }
 }
 
 function getInitState() {
-  let storedState
+  let storedState;
   try {
     storedState = JSON.parse(window.localStorage.getItem('cs522-hw3'))
   } catch (error) {
-    console.error('Error restoring from localStorage, using default state')
+    console.error('error')
   }
-  if (storedState && storedState.textAreaContent) return storedState
+  if (storedState && storedState.textAreaContent) {
+    return storedState
+  }
   return {
-    textAreaContent: "init text"
+    textAreaContent: ''
   }
 }
 
@@ -90,16 +81,16 @@ function useUndoRedo(reducer, initPresent) {
     currentIndex: 0
   }
 
-  const [state, dispatch] = useReducer(undoable(reducer), initState)
+  const [state, dispatch] = useReducer(undoRedo(reducer), initState)
 
   const { history, currentIndex } = state
-  const canUndo = currentIndex > 0
-  const canRedo = currentIndex < history.length - 1
+  const undoable = currentIndex > 0
+  const redoable = currentIndex < history.length - 1
 
-  return { state: history[currentIndex], dispatch, history, canUndo, canRedo }
+  return { state: history[currentIndex], dispatch, history, undoable, redoable }
 }
 
-function undoable(reducer) {
+function undoRedo(reducer) {
   return function (state, action) {
     const { history, currentIndex } = state
 
